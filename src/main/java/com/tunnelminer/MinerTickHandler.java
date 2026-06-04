@@ -60,12 +60,10 @@ public class MinerTickHandler {
             return;
         }
 
-        // ------------------------------------------------------------------
-        // Stop condition 2: Held item changed
-        // ------------------------------------------------------------------
+        // Stop condition 2: Held item changed (item type only, ignores durability/damage)
         ItemStack currentItem = client.player.getMainHandStack();
         boolean bothEmpty = currentItem.isEmpty() && state.heldItemAtStart.isEmpty();
-        if (!bothEmpty && !ItemStack.areItemsAndComponentsEqual(currentItem, state.heldItemAtStart)) {
+        if (!bothEmpty && !ItemStack.areItemsEqual(currentItem, state.heldItemAtStart)) {
             state.stopMining("Held item changed");
             return;
         }
