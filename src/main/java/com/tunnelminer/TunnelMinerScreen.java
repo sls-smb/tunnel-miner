@@ -123,7 +123,8 @@ public class TunnelMinerScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context, mouseX, mouseY, delta);
+        // super.render() calls renderBackground() internally — do NOT call it separately
+        super.render(context, mouseX, mouseY, delta);
 
         int centerX = this.width / 2;
         MinerState state = MinerState.getInstance();
@@ -168,9 +169,6 @@ public class TunnelMinerScreen extends Screen {
                         :                               0xFFFFAA;
         context.drawCenteredTextWithShadow(this.textRenderer,
                 Text.literal("Status: " + status), centerX, statusY, statusColor);
-
-        // Render widgets (text fields, buttons)
-        super.render(context, mouseX, mouseY, delta);
     }
 
     @Override

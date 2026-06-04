@@ -19,8 +19,8 @@ public class TunnelMinerMod implements ClientModInitializer {
     public void onInitializeClient() {
         openGuiKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.tunnel_miner.open_gui",
-                InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_M,
+                InputUtil.Type.SCANCODE,
+                50, // scancode 50 = physical M key regardless of keyboard layout (AZERTY/QWERTY)
                 "key.categories.tunnel_miner"
         ));
 
