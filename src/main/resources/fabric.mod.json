@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "tunnel-miner",
+  "version": "${version}",
+  "name": "TunnelMiner",
+  "description": "Automates tunnel mining between two points",
+  "authors": [
+    "TunnelMiner"
+  ],
+  "contact": {},
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.tunnelminer.TunnelMinerMod"
+    ]
+  },
+  "mixins": [
+    "tunnel-miner.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.15.11",
+    "fabric": "*",
+    "minecraft": "~1.21"
+  }
+}
