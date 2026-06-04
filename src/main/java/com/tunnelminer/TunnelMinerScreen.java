@@ -21,6 +21,8 @@ public class TunnelMinerScreen extends Screen {
         super(Text.literal("TunnelMiner"));
     }
 
+    private boolean skipBg = false;
+
     // Row Y positions — computed once so render() and init() agree
     private int rowButtons() { return 24; }
     private int rowCoords()  { return rowButtons() + BUTTON_HEIGHT + 4; }
@@ -83,33 +85,44 @@ public class TunnelMinerScreen extends Screen {
 
     @Override
     public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
-        // shouldPause() = false means the game world is still rendering.
-        // MC 1.21.8 crashes if the blur shader runs while the world is active.
-        // Draw a plain semi-transparent dark overlay instead.
+        if (skipBg) return;
         context.fill(0, 0, this.width, this.height, 0xB0000000);
     }
 
     @Override
     public void render(DrawContext ctx, int mouseX, int mouseY, float delta) {
-        // 1. Draw background overlay (no blur)
+        // Draw background once, then block the second call from super.render()
         renderBackground(ctx, mouseX, mouseY, delta);
+        skipBg = true;
+        super.render(ctx, mouseX, mouseY, delta);
+        skipBg = false;
 
+        // Draw text AFTER super.render() so it appears on top of the dark overlay
+        // (widgets are already drawn, text renders above them — acceptable since
+        //  labels sit in rows that don't overlap with any button or field)
         int cx    = this.width / 2;
         int left  = cx - BUTTON_WIDTH - 5;
         int right = cx + 5;
 
-        // 2. Draw custom text (behind widgets)
-        ctx.drawCenteredTextWithShadow(this.textRenderer, this.title, cx, 8, 0xFFFFFF);
-
         MinerState state = MinerState.getInstance();
 
-        String aCoord = state.pointA == null ? "§cNot set"
-                : String.format("§a%.1f  %.1f  %.1f", state.pointA.x, state.pointA.y, state.pointA.z);
-        String bCoord = state.pointB == null ? "§cNot set"
-                : String.format("§a%.1f  %.1f  %.1f", state.pointB.x, state.pointB.y, state.pointB.z);
+        ctx.drawCenteredTextWithShadow(this.textRenderer, this.title, cx, 8, 0xFFFFFF);
 
-        ctx.drawTextWithShadow(this.textRenderer, Text.literal("A: ").append(Text.of(aCoord)), left,  rowCoords(), 0xFFFFFF);
-        ctx.drawTextWithShadow(this.textRenderer, Text.literal("B: ").append(Text.of(bCoord)), right, rowCoords(), 0xFFFFFF);
+        // Coordinate display — plain color integers, no § codes
+        if (state.pointA == null) {
+            ctx.drawTextWithShadow(this.textRenderer, Text.literal("A: Not set"), left, rowCoords(), 0xFF5555);
+        } else {
+            ctx.drawTextWithShadow(this.textRenderer,
+                Text.literal(String.format("A: %.1f / %.1f / %.1f", state.pointA.x, state.pointA.y, state.pointA.z)),
+                left, rowCoords(), 0x55FF55);
+        }
+        if (state.pointB == null) {
+            ctx.drawTextWithShadow(this.textRenderer, Text.literal("B: Not set"), right, rowCoords(), 0xFF5555);
+        } else {
+            ctx.drawTextWithShadow(this.textRenderer,
+                Text.literal(String.format("B: %.1f / %.1f / %.1f", state.pointB.x, state.pointB.y, state.pointB.z)),
+                right, rowCoords(), 0x55FF55);
+        }
 
         ctx.drawTextWithShadow(this.textRenderer, Text.literal("Home Name:"),      left,  rowLabels(), 0xFFFFFF);
         ctx.drawTextWithShadow(this.textRenderer, Text.literal("Duration (min):"), right, rowLabels(), 0xFFFFFF);
@@ -117,9 +130,6 @@ public class TunnelMinerScreen extends Screen {
         String status = state.getStatusMessage();
         int color = status.startsWith("Error") ? 0xFF5555 : state.isRunning() ? 0x55FF55 : 0xFFFF55;
         ctx.drawCenteredTextWithShadow(this.textRenderer, Text.literal("Status: " + status), cx, rowStatus(), color);
-
-        // 3. Render widgets on top (renderBackground inside is blocked by flag)
-        super.render(ctx, mouseX, mouseY, delta);
     }
 
     @Override
