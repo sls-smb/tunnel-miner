@@ -16,8 +16,6 @@ public class TunnelMinerScreen extends Screen {
     private static final int FIELD_WIDTH   = 150;
     private static final int FIELD_HEIGHT  = 20;
 
-    // Prevents renderBackground from being triggered twice (once manually, once by super.render)
-    private boolean bgRendered = false;
 
     public TunnelMinerScreen() {
         super(Text.literal("TunnelMiner"));
@@ -85,18 +83,15 @@ public class TunnelMinerScreen extends Screen {
 
     @Override
     public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
-        // Block double-blur: super.render() calls this automatically; we also call it
-        // manually before drawing text. The flag ensures it only executes once per frame.
-        if (bgRendered) return;
-        bgRendered = true;
-        super.renderBackground(context, mouseX, mouseY, delta);
+        // shouldPause() = false means the game world is still rendering.
+        // MC 1.21.8 crashes if the blur shader runs while the world is active.
+        // Draw a plain semi-transparent dark overlay instead.
+        context.fill(0, 0, this.width, this.height, 0xB0000000);
     }
 
     @Override
     public void render(DrawContext ctx, int mouseX, int mouseY, float delta) {
-        bgRendered = false;
-
-        // 1. Draw background (blur + dark overlay)
+        // 1. Draw background overlay (no blur)
         renderBackground(ctx, mouseX, mouseY, delta);
 
         int cx    = this.width / 2;
