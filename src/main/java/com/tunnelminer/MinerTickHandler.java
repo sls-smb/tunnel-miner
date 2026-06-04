@@ -124,6 +124,8 @@ public class MinerTickHandler {
             if (state.waitTicks <= 0) {
                 // Issue /home command via chat command API
                 if (client.player.networkHandler != null) {
+                    // sendChatCommand sends "/home <name>" as a command (no leading slash needed)
+                    // Works on servers with Essentials/CMI. In solo it will fail silently.
                     client.player.networkHandler.sendChatCommand("home " + state.homeName);
                 }
                 state.waitPhase = MinerState.WaitPhase.WAITING_FOR_TELEPORT;
@@ -179,13 +181,20 @@ public class MinerTickHandler {
         }
 
         // ------------------------------------------------------------------
-        // Normal mining: press forward + attack, check for point B arrival
+        // Normal mining: hold forward + attack, check for point B arrival
         // ------------------------------------------------------------------
         if (state.pointA != null && state.pointB != null) {
             Vec3d playerPos = client.player.getPos();
-            double distToB = playerPos.distanceTo(state.pointB);
 
-            if (distToB < 2.0) {
+            // Compute how far along the A→B corridor the player is (0.0 = at A, 1.0 = at B).
+            // Stop when the player has reached or passed the block position of B.
+            Vec3d ab = state.pointB.subtract(state.pointA);
+            double abLenSq = ab.lengthSquared();
+            double t = abLenSq < 1e-10 ? 0.0
+                    : ab.dotProduct(playerPos.subtract(state.pointA)) / abLenSq;
+
+            if (t >= 1.0) {
+                // Player has reached the last block of point B
                 releaseInputs(client);
                 int ticks = MIN_WAIT_B_TICKS
                         + RANDOM.nextInt(MAX_WAIT_B_TICKS - MIN_WAIT_B_TICKS + 1);
@@ -196,9 +205,17 @@ public class MinerTickHandler {
             }
         }
 
-        // Hold forward + attack to mine through the tunnel
+        // Hold forward + attack continuously (pressed=true every tick keeps the key held)
         ((KeyBindingAccessor) client.options.forwardKey).setPressed(true);
         ((KeyBindingAccessor) client.options.attackKey).setPressed(true);
+        // Also directly trigger the attack interaction so block breaking is continuous
+        if (client.interactionManager != null && client.crosshairTarget != null
+                && client.crosshairTarget.getType() == net.minecraft.util.hit.HitResult.Type.BLOCK) {
+            client.interactionManager.updateBlockBreakingProgress(
+                    ((net.minecraft.util.hit.BlockHitResult) client.crosshairTarget).getBlockPos(),
+                    ((net.minecraft.util.hit.BlockHitResult) client.crosshairTarget).getSide()
+            );
+        }
         state.setStatusMessage("Mining...");
     }
 
