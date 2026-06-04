@@ -36,6 +36,11 @@ public class MinerTickHandler {
     // Countdown for teleport timeout
     private static int teleportTimeoutTicks = 0;
 
+    // Forward key pulse: hold 20 ticks (1s), release 4 ticks (0.2s), repeat
+    private static final int FORWARD_HOLD_TICKS    = 20;
+    private static final int FORWARD_RELEASE_TICKS = 4;
+    private static int forwardPulseTick = 0; // counts up; hold phase when < HOLD, release when < HOLD+RELEASE
+
     // -------------------------------------------------------------------------
 
     public static void tick(MinecraftClient client) {
@@ -197,8 +202,13 @@ public class MinerTickHandler {
             }
         }
 
-        // Hold forward + attack continuously (pressed=true every tick keeps the key held)
-        ((KeyBindingAccessor) client.options.forwardKey).setPressed(true);
+        // Forward key pulse: 1s hold / 0.2s release to avoid getting stuck on water or blocks
+        forwardPulseTick++;
+        if (forwardPulseTick >= FORWARD_HOLD_TICKS + FORWARD_RELEASE_TICKS) forwardPulseTick = 0;
+        boolean forwardOn = forwardPulseTick < FORWARD_HOLD_TICKS;
+        ((KeyBindingAccessor) client.options.forwardKey).setPressed(forwardOn);
+
+        // Attack key stays held continuously the whole time
         ((KeyBindingAccessor) client.options.attackKey).setPressed(true);
         // Also directly trigger the attack interaction so block breaking is continuous
         if (client.interactionManager != null && client.crosshairTarget != null
@@ -221,7 +231,7 @@ public class MinerTickHandler {
     }
 
     private static void resumeInputs(MinecraftClient client) {
-        ((KeyBindingAccessor) client.options.forwardKey).setPressed(true);
+        forwardPulseTick = 0;
         ((KeyBindingAccessor) client.options.attackKey).setPressed(true);
     }
 
