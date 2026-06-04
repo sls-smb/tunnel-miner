@@ -98,14 +98,8 @@ public class MinerTickHandler {
             }
         }
 
-        // ------------------------------------------------------------------
-        // Stop condition 6: Mouse moved (set by MouseMixin)
-        // ------------------------------------------------------------------
-        if (MinerState.mouseMoved) {
-            MinerState.mouseMoved = false;
-            state.stopMining("Mouse moved");
-            return;
-        }
+        // Stop condition 6 (mouse movement) disabled — too easily triggered accidentally.
+        MinerState.mouseMoved = false;
 
         // ------------------------------------------------------------------
         // Stop condition 7: Physical keyboard key pressed (set by KeyboardMixin)
