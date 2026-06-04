@@ -14,20 +14,6 @@ repositories {
     // Add repositories to retrieve artifacts from in here.
 }
 
-loom {
-    splitEnvironmentSourceSets()
-
-    mods {
-        "tunnel-miner" {
-            sourceSet sourceSets.main
-        }
-    }
-}
-
-fabricApi {
-    configureDataGeneration()
-}
-
 dependencies {
     // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -59,7 +45,7 @@ java {
 
 jar {
     from("LICENSE") {
-        rename { "${it}_${project.base.archivesName.get()}"}
+        rename { "${it}_${project.base.archivesName.get()}" }
     }
 }
 

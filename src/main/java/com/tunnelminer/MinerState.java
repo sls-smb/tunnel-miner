@@ -15,11 +15,11 @@ public class MinerState {
 
     private static final MinerState INSTANCE = new MinerState();
 
-    // Mining points
+    // Mining corridor endpoints
     public Vec3d pointA = null;
     public Vec3d pointB = null;
 
-    // Config
+    // Configuration
     public String homeName = "";
     public int durationMinutes = 60;
 
@@ -33,15 +33,15 @@ public class MinerState {
     public boolean paused = false;
     public long pauseUntil = 0L;
 
-    // Wait phase (tick-based delays)
+    // Tick-based wait phase (used for delays without Thread.sleep)
     public int waitTicks = 0;
     public WaitPhase waitPhase = WaitPhase.NONE;
 
-    // Input detection flags (set by mixins)
+    // Mixin-set flags for detecting external input
     public static volatile boolean keyPressedFlag = false;
     public static volatile boolean mouseMoved = false;
 
-    // Status
+    // Status displayed in the screen
     private String statusMessage = "Idle";
 
     private MinerState() {}
@@ -62,6 +62,9 @@ public class MinerState {
         return running;
     }
 
+    /**
+     * Resets all runtime state back to defaults without clearing pointA/B or config.
+     */
     public void reset() {
         running = false;
         startTime = 0L;
@@ -76,6 +79,9 @@ public class MinerState {
         statusMessage = "Idle";
     }
 
+    /**
+     * Starts the mining session. Snapshots the currently held item for change detection.
+     */
     public void startMining(MinecraftClient client) {
         if (client.player == null) {
             statusMessage = "No player found";
@@ -86,13 +92,15 @@ public class MinerState {
         startTime = System.currentTimeMillis();
         lastBreakTime = startTime;
 
-        // Copy current held item
         ItemStack current = client.player.getMainHandStack();
         heldItemAtStart = current.isEmpty() ? ItemStack.EMPTY : current.copy();
 
         statusMessage = "Mining...";
     }
 
+    /**
+     * Stops the mining session, releases all simulated key presses, and records the stop reason.
+     */
     public void stopMining(String reason) {
         running = false;
         paused = false;
@@ -102,7 +110,7 @@ public class MinerState {
 
         // Release simulated inputs
         MinecraftClient client = MinecraftClient.getInstance();
-        if (client.options != null) {
+        if (client != null && client.options != null) {
             ((KeyBindingAccessor) client.options.forwardKey).setPressed(false);
             ((KeyBindingAccessor) client.options.attackKey).setPressed(false);
         }
