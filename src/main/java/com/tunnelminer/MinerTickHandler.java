@@ -226,13 +226,13 @@ public class MinerTickHandler {
     // -------------------------------------------------------------------------
 
     private static void releaseInputs(MinecraftClient client) {
+        // Only release forward key — attack (left click) stays held at all times
         ((KeyBindingAccessor) client.options.forwardKey).setPressed(false);
-        ((KeyBindingAccessor) client.options.attackKey).setPressed(false);
     }
 
     private static void resumeInputs(MinecraftClient client) {
         forwardPulseTick = 0;
-        ((KeyBindingAccessor) client.options.attackKey).setPressed(true);
+        // Attack is already held, nothing extra needed
     }
 
     /**
