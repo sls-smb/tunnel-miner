@@ -36,9 +36,9 @@ public class MinerTickHandler {
     // Countdown for teleport timeout
     private static int teleportTimeoutTicks = 0;
 
-    // Forward key pulse: hold 20 ticks (1s), release 4 ticks (0.2s), repeat
-    private static final int FORWARD_HOLD_TICKS    = 20;
-    private static final int FORWARD_RELEASE_TICKS = 4;
+    // Forward key pulse: hold 4 ticks (200ms), release 20 ticks (1000ms), repeat
+    private static final int FORWARD_HOLD_TICKS    = 4;
+    private static final int FORWARD_RELEASE_TICKS = 20;
     private static int forwardPulseTick = 0; // counts up; hold phase when < HOLD, release when < HOLD+RELEASE
 
     // -------------------------------------------------------------------------
